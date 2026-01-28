@@ -1,150 +1,192 @@
-# Arslan – Auditory Interaction System
+# Arslan – Auditory Interaction System  
+*(Offline Speech Pipeline – C# Prototype)*
 
-## Project Overview
-This repository documents the **auditory interaction subsystem** developed for *Arslan*, a humanoid robot prototype created as a graduation project in Computer Engineering.
+## Overview
+This repository documents the **auditory interaction subsystem** developed for **Arslan**, a humanoid robot prototype created as a **Computer Engineering graduation project**.
 
-The system enables Arslan to:
-- Capture spoken user input
-- Perform **offline speech recognition**
-- Generate contextual responses
-- Translate responses into another language
-- Deliver spoken feedback through text-to-speech
+I was responsible for designing and implementing a **fully offline voice interaction pipeline**, enabling Arslan to listen, understand, respond, and speak back to users under strict academic, technical, and tooling constraints.
 
-The focus of this module is **robust audio interaction under constrained development conditions**, rather than commercial deployment.
+This project was not about building a polished commercial product.  
+It was about **engineering judgment, resilience, and system integration** in a constrained environment.
 
 ---
 
-## System Objectives
-The primary objectives of the auditory system were:
+## What This System Does
+The auditory subsystem enables Arslan to:
 
-- Enable **natural voice-based interaction** with users  
-- Operate **entirely offline** to ensure privacy and independence from cloud services  
-- Support **multilingual responses** (e.g., English → French)  
-- Integrate seamlessly with other robot subsystems (vision, motion, security)  
-- Remain modular and transferable to embedded robot hardware  
+- Capture spoken user input via microphone  
+- Perform **offline speech-to-text** processing  
+- Generate context-aware responses  
+- Optionally translate responses into another language  
+- Deliver spoken feedback using text-to-speech  
+- Operate **without cloud services or internet dependency**
 
----
-
-## Auditory System Architecture
-The auditory pipeline follows a sequential but asynchronous workflow:
-
-1. User speaks
-2. Microphone captures raw audio
-3. Audio is processed and converted to text (Speech-to-Text)
-4. Text is analyzed and routed to a local chatbot or data source
-5. Optional translation is applied
-6. Final response is vocalized via Text-to-Speech
-7. System loops for continuous interaction
-
-This design minimizes dependency coupling and allows individual components to be improved independently.
+The entire pipeline was designed to be **modular, inspectable, and adaptable** to future embedded hardware.
 
 ---
 
-## Technologies Used
+## High-Level Workflow
+1. User speaks  
+2. Audio is captured and buffered  
+3. Speech is transcribed locally (STT)  
+4. Text is routed to a local chatbot or data source  
+5. Optional translation is applied  
+6. Response is spoken aloud (TTS)  
+7. System loops for continuous interaction  
+
+This architecture isolates responsibilities, making the system easier to debug, extend, and evolve.
+
+---
+
+## System Design & Visual Documentation
+To clearly communicate the system design, this repository includes structured visual documentation in the **`/docs`** directory:
+
+- **`/docs/diagrams/`**
+  - Auditory interaction flowchart  
+  - Auditory system objectives diagram  
+
+- **`/docs/screenshots/`**
+  - Windows Forms interface  
+  - Console output showing live transcription and Arslan’s responses  
+
+Each folder contains its own README explaining what the visuals represent and how they relate to the system pipeline.
+
+---
+
+## Technologies & Engineering Choices
 
 ### Programming Language & Environment
-- **C# (.NET Framework)**
+- **C# (.NET Framework)**  
 - **SharpDevelop IDE**
 
-> SharpDevelop was mandated by the academic supervisor to encourage low-level problem solving and system understanding under limited tooling. While outdated, it provided a controlled environment that required manual dependency management and explicit architectural decisions.
+> SharpDevelop was imposed as an academic constraint. While outdated, it required manual dependency handling and low-level architectural decisions, significantly increasing the engineering complexity of the project.
 
 ---
 
-### Speech Recognition
-- **Vosk (Offline Speech Recognition Engine)**
+### Speech Recognition (Offline)
+- **Vosk**
 
-Vosk was selected due to its:
-- Offline operation
-- Multi-language support
-- Suitability for embedded and robotic systems
+Chosen for:
+- Offline operation  
+- Privacy preservation  
+- Compatibility with robotic and embedded contexts  
 
-Audio was captured in **16 kHz mono format**, compatible with Vosk’s requirements.
+Audio was processed in **16 kHz mono**, matching Vosk’s required input format.
 
 ---
 
 ### Audio Capture
-- **NAudio (.NET Audio Library)**
+- **NAudio**
 
 Used for:
-- Microphone device detection
-- Real-time audio streaming
-- Buffering and format control
+- Microphone access  
+- Audio buffering  
+- Format control prior to transcription  
 
 ---
 
 ### Voice Output
 - **System.Speech.Synthesis**
 
-Features:
-- Text-to-speech generation
-- Adjustable speech rate and volume
-- Support for SSML in advanced scenarios
+Used to generate spoken responses with adjustable rate and volume.
 
 ---
 
 ### Translation
 - **LibreTranslate (Docker, Localhost)**
 
-- Operated as a local HTTP service
-- Enabled multilingual interaction without external APIs
-- Ensured offline functionality and data privacy
+A locally hosted translation service was integrated to demonstrate multilingual capability **without external APIs**, ensuring full offline operation and data privacy.
 
 ---
 
-### Chatbot & Data Handling
-- **Local chatbot API (localhost server)**
-- **JSON-based place data storage**
+### Knowledge & Data Handling
+- **JSON-based local knowledge storage**
 
-Due to database integration constraints within SharpDevelop and team-wide tooling limitations, structured **JSON files** were used to store real-world location data (e.g., hospitals, restaurants).
+Due to tooling and database integration limitations, structured **JSON files** were used to store real-world data (e.g., hospitals, locations).
 
 This allowed Arslan to answer questions such as:
 > “Where is the nearest hospital?”
 
----
-
-## Functional Capabilities
-- Offline voice recognition
-- Context-aware response generation
-- Multilingual spoken feedback
-- Continuous interaction loop
-- Modular subsystem integration
+The system remains modular, allowing future migration to database-backed storage without redesigning the auditory pipeline.
 
 ---
 
-## Development Constraints & Challenges
-Several real-world challenges influenced the final system design:
+## Selected Code Excerpts (Illustrative)
 
-- Outdated IDE limitations (SharpDevelop)
-- Manual dependency handling
-- Latency in speech recognition and response generation
-- Asynchronous audio state management
-- Limited hardware testing (laptop microphone/speakers)
+> Full source code and third-party libraries are **not publicly shared** due to licensing, ownership, and academic integrity considerations.  
+> The following excerpts illustrate core logic only.
 
-Despite these constraints, the system achieved stable and functional auditory interaction.
+### Local Translation via HTTP (LibreTranslate)
+```csharp
+var payload = new {
+    q = text,
+    source = "en",
+    target = "fr",
+    format = "text"
+};
+
+string json = JsonConvert.SerializeObject(payload);
+HttpResponseMessage response = await client.PostAsync(
+    apiUrl,
+    new StringContent(json, Encoding.UTF8, "application/json")
+);
+
+string responseJson = await response.Content.ReadAsStringAsync();
+## Code Excerpts Overview
+
+These excerpts demonstrate:
+
+- Offline STT integration  
+- JSON parsing  
+- Asynchronous HTTP communication  
+- Modular processing stages  
+
+---
+
+## Challenges Faced (and Solved)
+
+This subsystem was developed under **non-ideal conditions**:
+
+- Outdated IDE and toolchain  
+- Manual DLL compatibility management  
+- High latency during early iterations  
+- Asynchronous audio state handling  
+- Limited access to final robot hardware  
+
+Despite these challenges, the system achieved **stable, functional auditory interaction**, with response times reduced from **over one minute** to approximately **30 seconds** in the final prototype.
 
 ---
 
 ## Academic Context
-This project was developed as part of a **Computer Engineering graduation project**.
 
-Each subsystem (audio, vision, motion, data security, hardware) was handled independently by different team members.  
-This repository focuses **exclusively on the auditory interaction module**.
+This work was developed as part of a **Computer Engineering graduation project**.
 
-Source code and third-party libraries are **not publicly shared** to respect academic integrity and software licensing.
+Each team member was responsible for a distinct subsystem:
+
+- Audio interaction (**this repository**)  
+- Vision  
+- Motion control  
+- Data security  
+- Hardware integration  
+
+This repository documents **my individual contribution** to the overall project.
 
 ---
 
-## Future Work
-Potential improvements include:
-- Migration to modern development environments
-- Database-backed knowledge systems
-- Latency optimization
-- Full deployment on embedded robot hardware
-- Enhanced dialogue management
+## Future Improvements
+
+Potential extensions and refinements include:
+
+- Migration to a modern IDE and runtime  
+- Streaming speech recognition for lower latency  
+- Embedded hardware deployment  
+- Database-backed knowledge systems  
+- Advanced dialogue management  
 
 ---
 
 ## Author
-Developed by **Hadil Zahiri**  
+
+**Hadil Zahiri**  
 Computer Engineering – Graduation Project
 
